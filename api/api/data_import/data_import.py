@@ -37,3 +37,6 @@ def import_all_data(db):
     import_from_file(db, pokedex.TeamAppraisalSize, './data_import/table_team_appraisal_size.csv')
     import_from_file(db, pokedex.AppraisalIv, './data_import/table_appraisal_iv.csv')
     import_from_file(db, pokedex.Item, './data_import/table_item.csv')
+    import_from_file(db, pokedex.Medal, './data_import/table_medal.csv')
+    import_from_file(db, pokedex.MedalLevel, './data_import/table_medal_level.csv')
+    import_from_file(db, pokedex.MedalLevelRequirement, './data_import/table_medal_level_requirement.csv')
