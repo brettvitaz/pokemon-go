@@ -1,6 +1,6 @@
 from api.database import setup_database
 from api.database.models import pokedex
-from api.data_import.data_import import import_all_data
+# from api.data_import.data_import import import_all_data
 
 from flask import Flask, request, abort
 from flask_marshmallow import Marshmallow
@@ -8,7 +8,7 @@ from sqlalchemy.orm import exc
 
 app = Flask(__name__)
 db = setup_database(app)
-import_all_data(db)
+# import_all_data(db)
 ma = Marshmallow(app)
 
 
