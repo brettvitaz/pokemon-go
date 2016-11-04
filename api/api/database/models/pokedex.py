@@ -1,8 +1,7 @@
-from sqlalchemy import Column, ForeignKey
-from sqlalchemy.dialects.postgresql import INTEGER, VARCHAR, TEXT, NUMERIC, DATE
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, Numeric, Date
 from sqlalchemy.orm import relationship
 
-from api.database.database import Base
+from api.database import db
 
 
 def repr_gen(self, column_names):
@@ -11,68 +10,68 @@ def repr_gen(self, column_names):
                                         .format(column_name) for column_name in column_names))).format(self=self)
 
 
-class Category(Base):
+class Category(db.Model):
     __tablename__ = 'category'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class Pokemon(Base):
+class Pokemon(db.Model):
     __tablename__ = 'pokemon'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
-    height = Column(NUMERIC(5, 2))
-    weight = Column(NUMERIC(5, 2))
-    category_id = Column(INTEGER, ForeignKey('category.id'), nullable=False)
-    stamina = Column(INTEGER, nullable=False)
-    attack = Column(INTEGER, nullable=False)
-    defense = Column(INTEGER, nullable=False)
-    cp_gain = Column(NUMERIC(5, 2), nullable=False)
-    cp_max = Column(INTEGER, nullable=False)
-    buddy_distance = Column(NUMERIC(5, 2), nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
+    height = Column(Numeric(5, 2))
+    weight = Column(Numeric(5, 2))
+    category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
+    stamina = Column(Integer, nullable=False)
+    attack = Column(Integer, nullable=False)
+    defense = Column(Integer, nullable=False)
+    cp_gain = Column(Numeric(5, 2), nullable=False)
+    cp_max = Column(Integer, nullable=False)
+    buddy_distance = Column(Numeric(5, 2), nullable=False)
 
-    attacks = relationship('Attack', secondary='pokemon_attack', back_populates='pokemons')
+    attacks = db.relationship('Attack', secondary='pokemon_attack', back_populates='pokemon')
     category = relationship('Category')
-    egg = relationship('Egg', secondary='pokemon_egg', back_populates='pokemons')
+    egg = relationship('Egg', secondary='pokemon_egg', back_populates='pokemon')
     evolves_to = relationship('Pokemon', secondary='pokemon_evolution', back_populates='evolves_from',
                               primaryjoin='Pokemon.id==PokemonEvolution.from_pokemon_id',
                               secondaryjoin='Pokemon.id==PokemonEvolution.to_pokemon_id')
     evolves_from = relationship('Pokemon', secondary='pokemon_evolution', back_populates='evolves_to',
                                 primaryjoin='Pokemon.id==PokemonEvolution.to_pokemon_id',
                                 secondaryjoin='Pokemon.id==PokemonEvolution.from_pokemon_id')
-    types = relationship('Type', secondary='pokemon_type', back_populates='pokemons')
+    types = relationship('Type', secondary='pokemon_type', back_populates='pokemon')
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description', 'height', 'weight', 'category',
                                'stamina', 'attack', 'defense', 'cp_gain', 'cp_max', 'buddy_distance'])
 
 
-class PokemonEvolution(Base):
+class PokemonEvolution(db.Model):
     __tablename__ = 'pokemon_evolution'
 
-    from_pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
-    to_pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
-    candy = Column(INTEGER, nullable=False)
+    from_pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
+    to_pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
+    candy = Column(Integer, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['from_pokemon_id', 'to_pokemon_id', 'candy'])
 
 
-class Type(Base):
+class Type(db.Model):
     __tablename__ = 'type'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
-    pokemons = relationship('Pokemon', secondary='pokemon_type', back_populates='types')
+    pokemon = relationship('Pokemon', secondary='pokemon_type', back_populates='types')
     strong_against = relationship('Type', secondary='type_effectiveness',
                                   primaryjoin='Type.id==TypeEffectiveness.from_type_id',
                                   secondaryjoin='and_(Type.id==TypeEffectiveness.to_type_id, '
@@ -86,44 +85,44 @@ class Type(Base):
         return repr_gen(self, ['name', 'description'])
 
 
-class Effectiveness(Base):
+class Effectiveness(db.Model):
     __tablename__ = 'effectiveness'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class TypeEffectiveness(Base):
+class TypeEffectiveness(db.Model):
     __tablename__ = 'type_effectiveness'
 
-    from_type_id = Column(INTEGER, ForeignKey('type.id'), primary_key=True)
-    to_type_id = Column(INTEGER, ForeignKey('type.id'), primary_key=True)
-    effectiveness_id = Column(INTEGER, ForeignKey('effectiveness.id'), primary_key=True)
+    from_type_id = Column(Integer, ForeignKey('type.id'), primary_key=True)
+    to_type_id = Column(Integer, ForeignKey('type.id'), primary_key=True)
+    effectiveness_id = Column(Integer, ForeignKey('effectiveness.id'), primary_key=True)
 
     def __repr__(self):
         return repr_gen(self, ['from_type_id', 'to_type_id', 'effectiveness_id'])
 
 
-class PokemonType(Base):
+class PokemonType(db.Model):
     __tablename__ = 'pokemon_type'
 
-    pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
-    type_id = Column(INTEGER, ForeignKey('type.id'), primary_key=True, nullable=False)
+    pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
+    type_id = Column(Integer, ForeignKey('type.id'), primary_key=True, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['pokemon_id', 'type_id'])
 
 
-class AttackSpeed(Base):
+class AttackSpeed(db.Model):
     __tablename__ = 'attack_speed'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     attacks = relationship('Attack', back_populates='speed')
 
@@ -131,189 +130,189 @@ class AttackSpeed(Base):
         return repr_gen(self, ['name', 'description'])
 
 
-class Attack(Base):
+class Attack(db.Model):
     __tablename__ = 'attack'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
-    type_id = Column(INTEGER, ForeignKey('type.id'), nullable=False)
-    power = Column(INTEGER, nullable=False)
-    energy = Column(INTEGER, nullable=False)
-    cooldown_time = Column(NUMERIC(5, 2), nullable=False)
-    attack_speed_id = Column(INTEGER, ForeignKey('attack_speed.id'), nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
+    type_id = Column(Integer, ForeignKey('type.id'), nullable=False)
+    power = Column(Integer, nullable=False)
+    energy = Column(Integer, nullable=False)
+    cooldown_time = Column(Numeric(5, 2), nullable=False)
+    attack_speed_id = Column(Integer, ForeignKey('attack_speed.id'), nullable=False)
 
-    pokemons = relationship('Pokemon', secondary='pokemon_attack', back_populates='attacks')
+    pokemon = relationship('Pokemon', secondary='pokemon_attack', back_populates='attacks')
     speed = relationship('AttackSpeed', back_populates='attacks')
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description', 'type_id', 'power', 'energy', 'cooldown_time', 'attack_speed_id'])
 
 
-class PokemonAttack(Base):
+class PokemonAttack(db.Model):
     __tablename__ = 'pokemon_attack'
 
-    pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True)
-    attack_id = Column(INTEGER, ForeignKey('attack.id'), primary_key=True)
+    pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True)
+    attack_id = Column(Integer, ForeignKey('attack.id'), primary_key=True)
 
     def __repr__(self):
         return repr_gen(self, ['pokemon_id', 'attack_id'])
 
 
-class Egg(Base):
+class Egg(db.Model):
     __tablename__ = 'egg'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
-    pokemons = relationship('Pokemon', secondary='pokemon_egg', back_populates='egg')
+    pokemon = relationship('Pokemon', secondary='pokemon_egg', back_populates='egg')
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class PokemonEgg(Base):
+class PokemonEgg(db.Model):
     __tablename__ = 'pokemon_egg'
 
-    pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
-    egg_id = Column(INTEGER, ForeignKey('egg.id'), primary_key=True, nullable=False)
+    pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
+    egg_id = Column(Integer, ForeignKey('egg.id'), primary_key=True, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['pokemon_id', 'egg_id'])
 
 
-class Item(Base):
+class Item(db.Model):
     __tablename__ = 'item'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class Team(Base):
+class Team(db.Model):
     __tablename__ = 'team'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
-    color = Column(VARCHAR(24), nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
+    color = Column(String(24), nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description', 'color'])
 
 
-class AppraisalOverall(Base):
+class AppraisalOverall(db.Model):
     __tablename__ = 'appraisal_overall'
 
-    id = Column(INTEGER, primary_key=True)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['description'])
 
 
-class TeamAppraisalOverall(Base):
+class TeamAppraisalOverall(db.Model):
     __tablename__ = 'team_appraisal_overall'
 
-    team_id = Column(INTEGER, ForeignKey('team.id'), primary_key=True, nullable=False)
-    appraisal_overall_id = Column(INTEGER, ForeignKey('appraisal_overall.id'), primary_key=True, nullable=False)
-    dialog = Column(TEXT, nullable=False)
+    team_id = Column(Integer, ForeignKey('team.id'), primary_key=True, nullable=False)
+    appraisal_overall_id = Column(Integer, ForeignKey('appraisal_overall.id'), primary_key=True, nullable=False)
+    dialog = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['team_id', 'appraisal_overall_id', 'dialog'])
 
 
-class AppraisalStats(Base):
+class AppraisalStats(db.Model):
     __tablename__ = 'appraisal_stats'
 
-    id = Column(INTEGER, primary_key=True)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['description'])
 
 
-class TeamAppraisalStats(Base):
+class TeamAppraisalStats(db.Model):
     __tablename__ = 'team_appraisal_stats'
 
-    team_id = Column(INTEGER, ForeignKey('team.id'), primary_key=True, nullable=False)
-    appraisal_stats_id = Column(INTEGER, ForeignKey('appraisal_stats.id'), primary_key=True, nullable=False)
-    dialog = Column(TEXT, nullable=False)
+    team_id = Column(Integer, ForeignKey('team.id'), primary_key=True, nullable=False)
+    appraisal_stats_id = Column(Integer, ForeignKey('appraisal_stats.id'), primary_key=True, nullable=False)
+    dialog = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['team_id', 'appraisal_stats_id', 'dialog'])
 
 
-class AppraisalSize(Base):
+class AppraisalSize(db.Model):
     __tablename__ = 'appraisal_size'
 
-    id = Column(INTEGER, primary_key=True)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['description'])
 
 
-class TeamAppraisalSize(Base):
+class TeamAppraisalSize(db.Model):
     __tablename__ = 'team_appraisal_size'
 
-    team_id = Column(INTEGER, ForeignKey('team.id'), primary_key=True, nullable=False)
-    appraisal_size_id = Column(INTEGER, ForeignKey('appraisal_size.id'), primary_key=True, nullable=False)
-    dialog = Column(TEXT, nullable=False)
+    team_id = Column(Integer, ForeignKey('team.id'), primary_key=True, nullable=False)
+    appraisal_size_id = Column(Integer, ForeignKey('appraisal_size.id'), primary_key=True, nullable=False)
+    dialog = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['team_id', 'appraisal_size_id', 'dialog'])
 
 
-class Medal(Base):
+class Medal(db.Model):
     __tablename__ = 'medal'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class MedalLevel(Base):
+class MedalLevel(db.Model):
     __tablename__ = 'medal_level'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    description = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description'])
 
 
-class MedalLevelRequirement(Base):
+class MedalLevelRequirement(db.Model):
     __tablename__ = 'medal_level_requirement'
 
-    medal_id = Column(INTEGER, ForeignKey('medal.id'), primary_key=True, nullable=False)
-    medal_level_id = Column(INTEGER, ForeignKey('medal_level.id'), primary_key=True, nullable=False)
-    count = Column(INTEGER, nullable=False)
+    medal_id = Column(Integer, ForeignKey('medal.id'), primary_key=True, nullable=False)
+    medal_level_id = Column(Integer, ForeignKey('medal_level.id'), primary_key=True, nullable=False)
+    count = Column(Integer, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['medal_id', 'medal_level_id', 'count'])
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'user'
 
-    id = Column(INTEGER, primary_key=True)
-    name = Column(VARCHAR(24), unique=True, nullable=False)
-    notes = Column(TEXT)
-    coins = Column(INTEGER)
-    stardust = Column(INTEGER)
-    buddy_pokemon_id = Column(INTEGER, ForeignKey('user_pokemon.id'))
-    bag_size = Column(INTEGER)
-    pokemon_storage_size = Column(INTEGER)
-    team_id = Column(INTEGER, ForeignKey('team.id'))
+    id = Column(Integer, primary_key=True)
+    name = Column(String(24), unique=True, nullable=False)
+    notes = Column(Text)
+    coins = Column(Integer)
+    stardust = Column(Integer)
+    buddy_pokemon_id = Column(Integer, ForeignKey('user_pokemon.id'))
+    bag_size = Column(Integer)
+    pokemon_storage_size = Column(Integer)
+    team_id = Column(Integer, ForeignKey('team.id'))
 
     def __repr__(self):
         return repr_gen(self,
@@ -321,53 +320,53 @@ class User(Base):
                          'team_id'])
 
 
-class UserItem(Base):
+class UserItem(db.Model):
     __tablename__ = 'user_item'
 
-    user_id = Column(INTEGER, ForeignKey('user.id'), primary_key=True, nullable=False)
-    item_id = Column(INTEGER, ForeignKey('item.id'), primary_key=True, nullable=False)
-    count = Column(INTEGER, nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, nullable=False)
+    item_id = Column(Integer, ForeignKey('item.id'), primary_key=True, nullable=False)
+    count = Column(Integer, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'item_id'])
 
 
-class UserMedal(Base):
+class UserMedal(db.Model):
     __tablename__ = 'user_medal'
 
-    user_id = Column(INTEGER, ForeignKey('user.id'), primary_key=True, nullable=False)
-    medal_id = Column(INTEGER, ForeignKey('medal.id'), primary_key=True, nullable=False)
-    medal_level_id = Column(INTEGER, ForeignKey('medal_level.id'), nullable=False)
-    count = Column(INTEGER, nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, nullable=False)
+    medal_id = Column(Integer, ForeignKey('medal.id'), primary_key=True, nullable=False)
+    medal_level_id = Column(Integer, ForeignKey('medal_level.id'), nullable=False)
+    count = Column(Integer, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'medal_id', 'medal_level_id', 'count'])
 
 
-class UserPokemon(Base):
+class UserPokemon(db.Model):
     __tablename__ = 'user_pokemon'
 
-    id = Column(INTEGER, primary_key=True)
-    user_id = Column(INTEGER, ForeignKey('user.id'), nullable=False)
-    pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), nullable=False)
-    name = Column(VARCHAR(24), nullable=False)
-    notes = Column(TEXT, nullable=False)
-    height = Column(NUMERIC(5, 2))
-    weight = Column(NUMERIC(5, 2))
-    stamina = Column(INTEGER)
-    attack = Column(INTEGER)
-    defense = Column(INTEGER)
-    cp = Column(INTEGER)
-    hp = Column(INTEGER)
-    power_up_stardust = Column(INTEGER)
-    power_up_candy = Column(INTEGER)
-    fast_attack_id = Column(INTEGER, ForeignKey('attack.id'))
-    charge_attack_id = Column(INTEGER, ForeignKey('attack.id'))
-    appraisal_overall_id = Column(INTEGER, ForeignKey('appraisal_overall.id'))
-    appraisal_stats_id = Column(INTEGER, ForeignKey('appraisal_stats.id'))
-    appraisal_size_id = Column(INTEGER, ForeignKey('appraisal_size.id'))
-    caught_location = Column(VARCHAR)
-    caught_date = Column(DATE)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    pokemon_id = Column(Integer, ForeignKey('pokemon.id'), nullable=False)
+    name = Column(String(24), nullable=False)
+    notes = Column(Text, nullable=False)
+    height = Column(Numeric(5, 2))
+    weight = Column(Numeric(5, 2))
+    stamina = Column(Integer)
+    attack = Column(Integer)
+    defense = Column(Integer)
+    cp = Column(Integer)
+    hp = Column(Integer)
+    power_up_stardust = Column(Integer)
+    power_up_candy = Column(Integer)
+    fast_attack_id = Column(Integer, ForeignKey('attack.id'))
+    charge_attack_id = Column(Integer, ForeignKey('attack.id'))
+    appraisal_overall_id = Column(Integer, ForeignKey('appraisal_overall.id'))
+    appraisal_stats_id = Column(Integer, ForeignKey('appraisal_stats.id'))
+    appraisal_size_id = Column(Integer, ForeignKey('appraisal_size.id'))
+    caught_location = Column(String)
+    caught_date = Column(Date)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'pokemon_id', 'name', 'notes', 'height', 'weight', 'stamina', 'attack',
@@ -376,56 +375,56 @@ class UserPokemon(Base):
                                'caught_date'])
 
 
-class AppraisalIv(Base):
+class AppraisalIv(db.Model):
     __tablename__ = 'appraisal_iv'
 
-    id = Column(INTEGER, primary_key=True)
-    description = Column(TEXT, nullable=False)
-    dialog = Column(TEXT, nullable=False)
+    id = Column(Integer, primary_key=True)
+    description = Column(Text, nullable=False)
+    dialog = Column(Text, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['description', 'dialog'])
 
 
-class UserPokemonAppraisalIv(Base):
+class UserPokemonAppraisalIv(db.Model):
     __tablename__ = 'user_pokemon_appraisal_iv'
 
-    user_pokemon_id = Column(INTEGER, ForeignKey('user_pokemon.id'), primary_key=True, nullable=False)
-    appraisal_iv_id = Column(INTEGER, ForeignKey('appraisal_iv.id'), primary_key=True, nullable=False)
+    user_pokemon_id = Column(Integer, ForeignKey('user_pokemon.id'), primary_key=True, nullable=False)
+    appraisal_iv_id = Column(Integer, ForeignKey('appraisal_iv.id'), primary_key=True, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['user_pokemon_id', 'appraisal_iv_id'])
 
 
-class UserEgg(Base):
+class UserEgg(db.Model):
     __tablename__ = 'user_egg'
 
-    user_id = Column(INTEGER, ForeignKey('user.id'), primary_key=True, nullable=False)
-    egg_id = Column(INTEGER, ForeignKey('egg.id'), primary_key=True, nullable=False)
-    count = Column(INTEGER)
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, nullable=False)
+    egg_id = Column(Integer, ForeignKey('egg.id'), primary_key=True, nullable=False)
+    count = Column(Integer)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'egg_id'])
 
 
-class UserCandy(Base):
+class UserCandy(db.Model):
     __tablename__ = 'user_candy'
 
-    user_id = Column(INTEGER, ForeignKey('user.id'), primary_key=True, nullable=False)
-    pokemon_id = Column(INTEGER, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
-    count = Column(INTEGER)
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, nullable=False)
+    pokemon_id = Column(Integer, ForeignKey('pokemon.id'), primary_key=True, nullable=False)
+    count = Column(Integer)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'pokemon_id', 'count'])
 
 
-class UserLog(Base):
+class UserLog(db.Model):
     __tablename__ = 'user_log'
 
-    id = Column(INTEGER, primary_key=True)
-    user_id = Column(INTEGER, ForeignKey('user.id'), nullable=False)
-    notes = Column(TEXT, nullable=False)
-    date = Column(DATE, nullable=False)
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    notes = Column(Text, nullable=False)
+    date = Column(Date, nullable=False)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'notes', 'date'])

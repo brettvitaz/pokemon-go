@@ -1,21 +1,17 @@
-from sqlalchemy import create_engine
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.engine.url import URL
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
-Base = declarative_base()
-
+# url = URL('sqlite', database=':memory:')
 url = URL('postgresql+psycopg2', username='postgres', password='postgres',
           host='localhost', port='5432', database='pokedex')
 
-engine = create_engine(url, echo=True)
-
-Session = sessionmaker(bind=engine)
+db = SQLAlchemy()
 
 
-def clear_database():
-    Base.metadata.drop_all(bind=engine)
-
-
-def setup_database():
-    Base.metadata.create_all(bind=engine, checkfirst=True)
+def setup_database(app):
+    app.config['SQLALCHEMY_DATABASE_URI'] = url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
+    app.app_context().push()
+    db.create_all()
+    return db
