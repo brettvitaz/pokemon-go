@@ -38,6 +38,10 @@ class Pokemon(db.Model):
     buddy_distance = Column(Numeric(5, 2), nullable=False)
 
     attacks = db.relationship('Attack', secondary='pokemon_attack', back_populates='pokemon')
+    fast_attacks = db.relationship('Attack', secondary='pokemon_attack',
+                                   primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, Attack.attack_speed_id==1)')
+    charge_attacks = db.relationship('Attack', secondary='pokemon_attack',
+                                   primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, Attack.attack_speed_id==2)')
     category = relationship('Category')
     egg = relationship('Egg', secondary='pokemon_egg', back_populates='pokemon')
     evolves_to = relationship('Pokemon', secondary='pokemon_evolution', back_populates='evolves_from',
@@ -144,6 +148,7 @@ class Attack(db.Model):
 
     pokemon = relationship('Pokemon', secondary='pokemon_attack', back_populates='attacks')
     speed = relationship('AttackSpeed', back_populates='attacks')
+    type = relationship('Type')
 
     def __repr__(self):
         return repr_gen(self, ['name', 'description', 'type_id', 'power', 'energy', 'cooldown_time', 'attack_speed_id'])
