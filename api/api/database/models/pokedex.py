@@ -306,6 +306,9 @@ class User(db.Model):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(24), unique=True, nullable=False)
+    password = Column(String(160), nullable=False)
+    recovery_token = Column(String(160))
+    email = Column(String(64), nullable=False)
     notes = Column(Text)
     coins = Column(Integer)
     stardust = Column(Integer)
