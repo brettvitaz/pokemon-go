@@ -316,7 +316,7 @@ class User(db.Model):
 
     def __repr__(self):
         return repr_gen(self,
-                        ['name', 'notes', ' coins', 'stardust', 'buddy_pokemon_id', 'bag_size', 'pokemon_storage_size',
+                        ['name', 'notes', 'coins', 'stardust', 'buddy_pokemon_id', 'bag_size', 'pokemon_storage_size',
                          'team_id'])
 
 
