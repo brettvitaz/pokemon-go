@@ -153,4 +153,13 @@ def route_pokemon_id(id):
 
 
 if __name__ == '__main__':
-    app.run()
+    run_config = {}
+
+    try:
+        run_config.update({
+            'ssl_context': (app.config['SSL_CERT'], app.config['SSL_KEY'])
+        })
+    except KeyError:
+        pass
+
+    app.run(**run_config)
