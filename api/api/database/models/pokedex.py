@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, Numeric, Date
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, Numeric, Date, TIMESTAMP
 from sqlalchemy.orm import relationship
 
 from api.database import db
@@ -41,7 +41,7 @@ class Pokemon(db.Model):
     fast_attacks = db.relationship('Attack', secondary='pokemon_attack',
                                    primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, Attack.attack_speed_id==1)')
     charge_attacks = db.relationship('Attack', secondary='pokemon_attack',
-                                   primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, Attack.attack_speed_id==2)')
+                                     primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, Attack.attack_speed_id==2)')
     category = relationship('Category')
     egg = relationship('Egg', secondary='pokemon_egg', back_populates='pokemon')
     evolves_to = relationship('Pokemon', secondary='pokemon_evolution', back_populates='evolves_from',
@@ -53,7 +53,7 @@ class Pokemon(db.Model):
     types = relationship('Type', secondary='pokemon_type', back_populates='pokemon')
 
     def __repr__(self):
-        return repr_gen(self, ['name', 'description', 'height', 'weight', 'category',
+        return repr_gen(self, ['name', 'description', 'height', 'weight', 'category_id',
                                'stamina', 'attack', 'defense', 'cp_gain', 'cp_max', 'buddy_distance'])
 
 
@@ -310,7 +310,9 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(24), unique=True, nullable=False)
+    username = Column(String(24), unique=True, nullable=False)
+    nickname = Column(String(24))
+    location = Column(String)
     password = Column(String(160), nullable=False)
     recovery_token = Column(String(160))
     email = Column(String(64), nullable=False)
@@ -321,11 +323,13 @@ class User(db.Model):
     bag_size = Column(Integer)
     pokemon_storage_size = Column(Integer)
     team_id = Column(Integer, ForeignKey('team.id'))
+    created = Column(TIMESTAMP)
+    last_modified = Column(TIMESTAMP)
 
     def __repr__(self):
         return repr_gen(self,
                         ['name', 'notes', 'coins', 'stardust', 'buddy_pokemon_id', 'bag_size', 'pokemon_storage_size',
-                         'team_id'])
+                         'team_id', 'created', 'last_modified'])
 
 
 class UserItem(db.Model):
@@ -375,12 +379,14 @@ class UserPokemon(db.Model):
     appraisal_size_id = Column(Integer, ForeignKey('appraisal_size.id'))
     caught_location = Column(String)
     caught_date = Column(Date)
+    created = Column(TIMESTAMP)
+    last_modified = Column(TIMESTAMP)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'pokemon_id', 'name', 'notes', 'height', 'weight', 'stamina', 'attack',
                                'defense', 'cp', 'hp', 'power_up_stardust', 'power_up_candy', 'fast_attack_id',
                                'charge_attack_id', 'appraisal_overall_id', 'appraisal_stats_id', 'caught_location',
-                               'caught_date'])
+                               'caught_date', 'created', 'last_modified'])
 
 
 class AppraisalIv(db.Model):
@@ -432,7 +438,8 @@ class UserLog(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     notes = Column(Text, nullable=False)
-    date = Column(Date, nullable=False)
+    created = Column(TIMESTAMP)
+    last_modified = Column(TIMESTAMP)
 
     def __repr__(self):
         return repr_gen(self, ['user_id', 'notes', 'date'])
