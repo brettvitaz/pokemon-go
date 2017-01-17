@@ -1,6 +1,7 @@
 from api.database import db
 
 
+# TODO - convert to class mix-in
 def repr_gen(self, column_names):
     return '<{0}({1})>'.format(self.__class__.__name__,
                                ' '.join(('{0}={{self.{0}!r}}'
@@ -34,7 +35,6 @@ class Pokemon(db.Model):
     cp_max = db.Column(db.Integer, nullable=False)
     buddy_distance = db.Column(db.Numeric(5, 2), nullable=False)
 
-    attacks = db.relationship('Attack', secondary='pokemon_attack', back_populates='pokemon')
     fast_attacks = db.relationship('Attack', secondary='pokemon_attack',
                                    primaryjoin='and_(Pokemon.id==PokemonAttack.pokemon_id, '
                                                'Attack.attack_speed_id==1)')
@@ -322,15 +322,16 @@ class User(db.Model):
     bag_size = db.Column(db.Integer)
     pokemon_storage_size = db.Column(db.Integer)
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    created = db.Column(db.TIMESTAMP)
-    last_modified = db.Column(db.TIMESTAMP)
+    created = db.Column(db.TIMESTAMP(timezone=True), server_default=db.func.now())
+    last_modified = db.Column(db.TIMESTAMP(timezone=True), onupdate=db.func.now())
 
     pokemon = db.relationship('UserPokemon', primaryjoin='User.id==UserPokemon.user_id')
     team = db.relationship('Team')
 
     def __repr__(self):
-        return repr_gen(self, ['name', 'notes', 'coins', 'stardust', 'buddy_pokemon_id', 'bag_size',
-                               'pokemon_storage_size', 'team_id', 'created', 'last_modified'])
+        return repr_gen(self, ['username', 'nickname', 'location', 'email', 'notes', 'coins', 'stardust',
+                               'buddy_pokemon_id', 'bag_size', 'pokemon_storage_size', 'team_id', 'created',
+                               'last_modified'])
 
 
 class UserItem(db.Model):
@@ -380,8 +381,8 @@ class UserPokemon(db.Model):
     appraisal_size_id = db.Column(db.Integer, db.ForeignKey('appraisal_size.id'))
     caught_location = db.Column(db.String)
     caught_date = db.Column(db.Date)
-    created = db.Column(db.TIMESTAMP)
-    last_modified = db.Column(db.TIMESTAMP)
+    created = db.Column(db.TIMESTAMP(timezone=True), server_default=db.func.now())
+    last_modified = db.Column(db.TIMESTAMP(timezone=True), onupdate=db.func.now())
 
     user = db.relationship('User', foreign_keys=[user_id], back_populates='pokemon')
     pokemon = db.relationship('Pokemon')
@@ -448,8 +449,8 @@ class UserLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     notes = db.Column(db.Text, nullable=False)
-    created = db.Column(db.TIMESTAMP)
-    last_modified = db.Column(db.TIMESTAMP)
+    created = db.Column(db.TIMESTAMP(timezone=True), server_default=db.func.now())
+    last_modified = db.Column(db.TIMESTAMP(timezone=True), onupdate=db.func.now())
 
     def __repr__(self):
-        return repr_gen(self, ['user_id', 'notes', 'date'])
+        return repr_gen(self, ['user_id', 'notes', 'date', 'created', 'last_modified'])
